@@ -1,0 +1,22 @@
+{
+  "name": "ghostemail",
+  "version": "0.1.0",
+  "description": "Собирает посты Ghost и создаёт черновик email-дайджеста",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "digest": "node dist/index.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@tryghost/admin-api": "1.14.10"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.30",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}
