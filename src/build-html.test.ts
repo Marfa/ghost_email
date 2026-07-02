@@ -12,15 +12,23 @@ describe('pickExcerpt', () => {
 });
 
 describe('buildDigestHtml', () => {
-  it('builds digest with button links', () => {
+  it('builds digest with Ghost button card', () => {
     const html = buildDigestHtml(
       [{ title: 'Test', slug: 'test', url: 'https://example.com/test/', excerpt: 'Summary' }],
       'Intro',
     );
     expect(html).toContain('<p>Intro</p>');
     expect(html).toContain('<h3 id="test">Test</h3>');
+    expect(html).toContain('<!--kg-card-begin: button-->');
+    expect(html).toContain('kg-button-card');
     expect(html).toContain('class="kg-btn kg-btn-accent"');
     expect(html).toContain('https://example.com/test/');
+  });
+
+  it('adds image block when imageUrl provided', () => {
+    const html = buildDigestHtml([], 'Intro', 'https://example.com/cover.png');
+    expect(html).toContain('kg-image-card');
+    expect(html).toContain('https://example.com/cover.png');
   });
 
   it('escapes HTML in titles', () => {

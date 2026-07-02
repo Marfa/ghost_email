@@ -22,14 +22,24 @@ export function pickExcerpt(customExcerpt: string | null | undefined, excerpt: s
   return stripHtml(raw);
 }
 
-export function buildDigestHtml(posts: DigestPost[], intro: string): string {
-  const parts = [`<p>${escapeHtml(intro)}</p>`];
+export function buildDigestHtml(posts: DigestPost[], intro: string, imageUrl?: string): string {
+  const parts: string[] = [];
+
+  if (imageUrl) {
+    parts.push(
+      `<figure class="kg-card kg-image-card"><img src="${escapeHtml(imageUrl)}" alt="Обложка дайджеста" /></figure>`,
+    );
+  }
+
+  parts.push(`<p>${escapeHtml(intro)}</p>`);
 
   for (const post of posts) {
     parts.push(
       `<h3 id="${escapeHtml(post.slug)}">${escapeHtml(post.title)}</h3>`,
       `<p>${escapeHtml(post.excerpt)}</p>`,
-      `<p><a href="${escapeHtml(post.url)}" class="kg-btn kg-btn-accent">Читать дальше</a></p>`,
+      '<!--kg-card-begin: button-->',
+      `<div class="kg-card kg-button-card kg-align-left"><a href="${escapeHtml(post.url)}" class="kg-btn kg-btn-accent">Читать дальше</a></div>`,
+      '<!--kg-card-end: button-->',
     );
   }
 
