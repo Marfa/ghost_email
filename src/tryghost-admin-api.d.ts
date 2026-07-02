@@ -8,6 +8,7 @@ declare module '@tryghost/admin-api' {
   interface BrowseOptions {
     filter?: string;
     fields?: string;
+    include?: string;
     order?: string;
     limit?: number | string;
   }

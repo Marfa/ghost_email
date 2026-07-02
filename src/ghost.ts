@@ -14,6 +14,11 @@ export interface GhostPostRow {
   tags?: Array<{ name: string }>;
 }
 
+/** Корень сайта без /ghost — админка на {url}/ghost, API на {url}/ghost/api/admin/. */
+export function normalizeGhostUrl(raw: string): string {
+  return raw.replace(/\/+$/, '').replace(/\/ghost\/?$/, '');
+}
+
 function createApi() {
   const url = process.env.GHOST_URL;
   const key = process.env.GHOST_ADMIN_API_KEY;
@@ -22,9 +27,9 @@ function createApi() {
   }
 
   return new GhostAdminAPI({
-    url: url.replace(/\/$/, ''),
+    url: normalizeGhostUrl(url),
     key,
-    version: 'v5.0',
+    version: process.env.GHOST_API_VERSION ?? 'v6.0',
   });
 }
 
@@ -39,16 +44,18 @@ export async function fetchPostsForWindow(from: Date, to: Date): Promise<DigestP
 
   const fromIso = toGhostFilterDate(from);
   const toIso = toGhostFilterDate(to);
-  const filter = `status:['published','scheduled']+published_at:>'${fromIso}'+published_at:<='${toIso}'`;
+  const filter = `(status:published,status:scheduled)+published_at:>'${fromIso}'+published_at:<='${toIso}'`;
 
   const rows = (await api.posts.browse({
     filter,
-    fields: 'title,slug,url,excerpt,custom_excerpt,status,published_at,tags',
+    include: 'tags',
+    fields: 'title,slug,url,excerpt,custom_excerpt,status,published_at',
     order: 'published_at asc',
     limit: 'all',
   })) as GhostPostRow[];
 
   return rows
+    .filter((post) => post.status === 'published' || post.status === 'scheduled')
     .filter((post) => !hasExcludeTag(post, excludeTag))
     .map((post) => ({
       title: post.title,

@@ -1,9 +1,6 @@
 name: Weekly digest
 
 on:
-  schedule:
-    # Воскресенье 15:00 UTC — настройте под свой часовой пояс
-    - cron: '0 15 * * 0'
   workflow_dispatch:
 
 permissions:
@@ -17,7 +14,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
           cache: npm
 
       - run: npm ci

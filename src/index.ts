@@ -43,9 +43,20 @@ export async function runDigest(): Promise<void> {
 
 const isMain = process.argv[1]?.endsWith('/index.js') || process.argv[1]?.endsWith('\\index.js');
 
+function logError(err: unknown): void {
+  if (err && typeof err === 'object' && 'response' in err) {
+    const res = (err as { response?: { status?: number; data?: unknown } }).response;
+    if (res?.data) {
+      console.error('Ghost API:', JSON.stringify(res.data, null, 2));
+    }
+    if (res?.status) console.error(`HTTP ${res.status}`);
+  }
+  console.error(err instanceof Error ? err.message : err);
+}
+
 if (isMain) {
   runDigest().catch((err) => {
-    console.error(err instanceof Error ? err.message : err);
+    logError(err);
     process.exit(1);
   });
 }

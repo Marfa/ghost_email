@@ -12,22 +12,24 @@ npm ci && npm test && npm run build && npm run digest
 | Период сбора | После `state/last-run.json`; первый раз — 7 дней |
 | Статусы постов | Опубликован + Запланирован |
 | Результат | Черновик в Ghost с excerpt и «Читать дальше» |
-| Автозапуск | GitHub Actions (бесплатно для public repo) |
+| Автозапуск | GitHub Actions → Run workflow (только вручную) |
 
 ## Quick Start
 
 1. Ghost Admin → Settings → Integrations → Add custom integration → скопировать Admin API Key.
 2. Локально: `.env` из `.env.example`.
 3. `npm ci && npm run build && npm run digest`.
-4. В GitHub: Secrets `GHOST_URL`, `GHOST_ADMIN_API_KEY`.
+4. В GitHub Secrets: `GHOST_URL` = `https://your-site.ghost.io` (корень сайта, **без** `/ghost`), `GHOST_ADMIN_API_KEY`.
 
 Первый запуск берёт посты за **7 дней**. Каждый следующий — только **после времени прошлого запуска**. Метка сохраняется в `state/last-run.json` (коммитится из CI).
+
+Запуск в GitHub: **Actions → Weekly digest → Run workflow**.
 
 ## Переменные
 
 | Переменная | Обязательно | По умолчанию |
 |------------|-------------|--------------|
-| `GHOST_URL` | да | — |
+| `GHOST_URL` | да | `https://your-site.ghost.io` (без `/ghost`) |
 | `GHOST_ADMIN_API_KEY` | да | — |
 | `DIGEST_INTRO` | нет | короткое приветствие |
 | `DIGEST_EXCLUDE_TAG` | нет | `#weekly-email` |
@@ -36,7 +38,7 @@ npm ci && npm test && npm run build && npm run digest
 
 ## Инфраструктура
 
-Дополнительных серверов не нужно. Ghost уже хостится у вас; cron — **GitHub Actions** (public repo: без лимита минут). Приватный repo: ~2000 мин/мес на бесплатном плане — для еженедельного job хватает.
+Дополнительных серверов не нужно. Запуск — **GitHub Actions** вручную (расписание отключено).
 
 ---
 
