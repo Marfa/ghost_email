@@ -1,11 +1,8 @@
 import { buildDigestHtml } from './build-html.js';
+import { DIGEST_INTRO, DIGEST_TITLE } from './constants.js';
 import { fetchPostsForWindow, createDraftPost, resolveDigestImageUrl } from './ghost.js';
 import { readLastRun, writeLastRun } from './state.js';
 import { getCollectionWindow } from './window.js';
-
-const FIXED_TITLE = 'Как ... и прочие хитрости от All-in-One Person';
-const FIXED_INTRO =
-  'Приветствую. На этой неделе я расскажу как добавить управление смартфоном с помощью курсора и как не дать экрану выключиться.';
 
 function parseFallbackDays(): number {
   const raw = process.env.FALLBACK_DAYS ?? '7';
@@ -34,8 +31,8 @@ export async function runDigest(): Promise<void> {
   }
 
   const imageUrl = await resolveDigestImageUrl();
-  const html = buildDigestHtml(posts, FIXED_INTRO, imageUrl ?? undefined);
-  const title = FIXED_TITLE;
+  const html = buildDigestHtml(posts, DIGEST_INTRO, imageUrl ?? undefined);
+  const title = DIGEST_TITLE;
 
   const draft = await createDraftPost(title, html);
   await writeLastRun(runStartedAt);

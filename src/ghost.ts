@@ -1,4 +1,5 @@
 import GhostAdminAPI from '@tryghost/admin-api';
+import { DIGEST_DRAFT_TAG, DIGEST_TITLE } from './constants.js';
 import { toGhostFilterDate } from './window.js';
 import { pickExcerpt, type DigestPost } from './build-html.js';
 
@@ -57,6 +58,12 @@ function hasExcludeTag(post: GhostPostRow, excludeTag: string): boolean {
   return (post.tags ?? []).some((t) => t.name.replace(/^#/, '').toLowerCase() === normalized);
 }
 
+export function getExcludeReason(post: GhostPostRow, excludeTag?: string): string | null {
+  if (post.title === DIGEST_TITLE) return 'digest title';
+  if (excludeTag && hasExcludeTag(post, excludeTag)) return `tag ${excludeTag}`;
+  return null;
+}
+
 function mapPost(post: GhostPostRow): DigestPost {
   return {
     title: post.title,
@@ -78,7 +85,7 @@ async function browsePosts(api: ReturnType<typeof createApi>, filter: string): P
 
 export async function fetchPostsForWindow(from: Date, to: Date): Promise<DigestPost[]> {
   const api = createApi();
-  const excludeTag = process.env.DIGEST_EXCLUDE_TAG ?? '#weekly-email';
+  const excludeTag = process.env.DIGEST_EXCLUDE_TAG?.trim() || undefined;
 
   const [publishedRows, scheduledRows] = await Promise.all([
     browsePosts(api, buildPublishedFilter(from, to)),
@@ -92,18 +99,26 @@ export async function fetchPostsForWindow(from: Date, to: Date): Promise<DigestP
     byId.set(row.id, row);
   }
 
-  const posts = [...byId.values()]
-    .filter((post) => post.status === 'published' || post.status === 'scheduled')
-    .filter((post) => !hasExcludeTag(post, excludeTag))
-    .map(mapPost);
+  const posts: DigestPost[] = [];
+  for (const post of byId.values()) {
+    if (post.status !== 'published' && post.status !== 'scheduled') continue;
 
-  console.log(`After filters: ${posts.length} posts`);
+    const reason = getExcludeReason(post, excludeTag);
+    if (reason) {
+      console.log(`Skip ${post.slug}: ${reason}`);
+      continue;
+    }
+
+    posts.push(mapPost(post));
+  }
+
+  console.log(`After filters: ${posts.length} posts (${posts.map((p) => p.slug).join(', ')})`);
   return posts;
 }
 
 export async function createDraftPost(title: string, html: string): Promise<{ id: string; url: string }> {
   const api = createApi();
-  const tag = (process.env.DIGEST_EXCLUDE_TAG ?? '#weekly-email').replace(/^#/, '');
+  const tag = (process.env.DIGEST_DRAFT_TAG ?? DIGEST_DRAFT_TAG).replace(/^#/, '');
 
   const created = (await api.posts.add(
     {

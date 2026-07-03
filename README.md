@@ -31,8 +31,8 @@ npm ci && npm test && npm run build && npm run digest
 |------------|-------------|--------------|
 | `GHOST_URL` | да | `https://your-site.ghost.io` (без `/ghost`) |
 | `GHOST_ADMIN_API_KEY` | да | — |
-| `DIGEST_INTRO` | нет | короткое приветствие |
-| `DIGEST_EXCLUDE_TAG` | нет | `#weekly-email` |
+| `DIGEST_EXCLUDE_TAG` | нет | не задан — теги не исключаются |
+| `DIGEST_DRAFT_TAG` | нет | `#digest-auto` |
 | `FALLBACK_DAYS` | нет | `7` |
 | `STATE_FILE` | нет | `state/last-run.json` |
 
