@@ -17,8 +17,13 @@ export function escapeHtml(text: string): string {
     .replaceAll('"', '&quot;');
 }
 
-export function pickExcerpt(customExcerpt: string | null | undefined, excerpt: string | null | undefined): string {
-  const raw = customExcerpt?.trim() || excerpt?.trim() || '';
+export function pickExcerpt(
+  customExcerpt: string | null | undefined,
+  excerpt: string | null | undefined,
+  plaintext?: string | null,
+  title?: string,
+): string {
+  const raw = customExcerpt?.trim() || excerpt?.trim() || plaintext?.trim() || title?.trim() || '';
   return stripHtml(raw);
 }
 

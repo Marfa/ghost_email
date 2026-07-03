@@ -9,6 +9,11 @@ describe('pickExcerpt', () => {
   it('strips HTML from excerpt', () => {
     expect(pickExcerpt(null, '<p>Hello <strong>world</strong></p>')).toBe('Hello world');
   });
+
+  it('falls back to plaintext then title', () => {
+    expect(pickExcerpt(null, null, 'Plain body', 'Title')).toBe('Plain body');
+    expect(pickExcerpt(null, null, null, 'Title only')).toBe('Title only');
+  });
 });
 
 describe('buildDigestHtml', () => {

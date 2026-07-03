@@ -9,8 +9,10 @@ export interface GhostPostRow {
   url: string;
   excerpt?: string;
   custom_excerpt?: string;
+  plaintext?: string;
   status: string;
   published_at: string;
+  updated_at: string;
   tags?: Array<{ name: string }>;
 }
 
@@ -21,6 +23,19 @@ interface GhostImageUploadResult {
 /** Корень сайта без /ghost — админка на {url}/ghost, API на {url}/ghost/api/admin/. */
 export function normalizeGhostUrl(raw: string): string {
   return raw.replace(/\/+$/, '').replace(/\/ghost\/?$/, '');
+}
+
+export function buildPublishedFilter(from: Date, to: Date): string {
+  const fromIso = toGhostFilterDate(from);
+  const toIso = toGhostFilterDate(to);
+  return `(status:published)+published_at:>'${fromIso}'+published_at:<='${toIso}'`;
+}
+
+/** Scheduled: published_at в будущем, окно — по updated_at. */
+export function buildScheduledFilter(from: Date, to: Date): string {
+  const fromIso = toGhostFilterDate(from);
+  const toIso = toGhostFilterDate(to);
+  return `(status:scheduled)+updated_at:>'${fromIso}'+updated_at:<='${toIso}'`;
 }
 
 function createApi() {
@@ -42,32 +57,48 @@ function hasExcludeTag(post: GhostPostRow, excludeTag: string): boolean {
   return (post.tags ?? []).some((t) => t.name.replace(/^#/, '').toLowerCase() === normalized);
 }
 
+function mapPost(post: GhostPostRow): DigestPost {
+  return {
+    title: post.title,
+    slug: post.slug,
+    url: post.url,
+    excerpt: pickExcerpt(post.custom_excerpt, post.excerpt, post.plaintext, post.title),
+  };
+}
+
+async function browsePosts(api: ReturnType<typeof createApi>, filter: string): Promise<GhostPostRow[]> {
+  return (await api.posts.browse({
+    filter,
+    include: 'tags',
+    fields: 'title,slug,url,excerpt,custom_excerpt,plaintext,status,published_at,updated_at',
+    order: 'published_at asc',
+    limit: 'all',
+  })) as GhostPostRow[];
+}
+
 export async function fetchPostsForWindow(from: Date, to: Date): Promise<DigestPost[]> {
   const api = createApi();
   const excludeTag = process.env.DIGEST_EXCLUDE_TAG ?? '#weekly-email';
 
-  const fromIso = toGhostFilterDate(from);
-  const toIso = toGhostFilterDate(to);
-  const filter = `(status:published,status:scheduled)+published_at:>'${fromIso}'+published_at:<='${toIso}'`;
+  const [publishedRows, scheduledRows] = await Promise.all([
+    browsePosts(api, buildPublishedFilter(from, to)),
+    browsePosts(api, buildScheduledFilter(from, to)),
+  ]);
 
-  const rows = (await api.posts.browse({
-    filter,
-    include: 'tags',
-    fields: 'title,slug,url,excerpt,custom_excerpt,status,published_at',
-    order: 'published_at asc',
-    limit: 'all',
-  })) as GhostPostRow[];
+  console.log(`API: ${publishedRows.length} published, ${scheduledRows.length} scheduled`);
 
-  return rows
+  const byId = new Map<string, GhostPostRow>();
+  for (const row of [...publishedRows, ...scheduledRows]) {
+    byId.set(row.id, row);
+  }
+
+  const posts = [...byId.values()]
     .filter((post) => post.status === 'published' || post.status === 'scheduled')
     .filter((post) => !hasExcludeTag(post, excludeTag))
-    .map((post) => ({
-      title: post.title,
-      slug: post.slug,
-      url: post.url,
-      excerpt: pickExcerpt(post.custom_excerpt, post.excerpt),
-    }))
-    .filter((post) => post.excerpt.length > 0);
+    .map(mapPost);
+
+  console.log(`After filters: ${posts.length} posts`);
+  return posts;
 }
 
 export async function createDraftPost(title: string, html: string): Promise<{ id: string; url: string }> {
