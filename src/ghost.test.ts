@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildPublishedFilter, buildScheduledFilter, getExcludeReason } from './ghost.js';
+import { buildPublishedFilter, buildScheduledFilter, dedupePosts, getExcludeReason } from './ghost.js';
 import { DIGEST_TITLE } from './constants.js';
 import type { GhostPostRow } from './ghost.js';
 
@@ -31,6 +31,25 @@ describe('buildScheduledFilter', () => {
     expect(buildScheduledFilter(from, to)).toBe(
       "(status:scheduled)+updated_at:>'2026-07-02T00:00:00.000Z'+updated_at:<='2026-07-03T00:00:00.000Z'",
     );
+  });
+});
+
+describe('dedupePosts', () => {
+  it('keeps distinct posts by id', () => {
+    const rows = [
+      row({ id: '1', slug: 'a' }),
+      row({ id: '2', slug: 'b' }),
+      row({ id: '3', slug: 'c' }),
+    ];
+    expect(dedupePosts(rows)).toHaveLength(3);
+  });
+
+  it('does not collapse posts when id is missing but slug differs', () => {
+    const rows = [
+      row({ id: undefined as unknown as string, slug: 'webmin' }),
+      row({ id: undefined as unknown as string, slug: 'telegram' }),
+    ];
+    expect(dedupePosts(rows)).toHaveLength(2);
   });
 });
 

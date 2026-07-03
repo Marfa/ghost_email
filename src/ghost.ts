@@ -58,6 +58,16 @@ function hasExcludeTag(post: GhostPostRow, excludeTag: string): boolean {
   return (post.tags ?? []).some((t) => t.name.replace(/^#/, '').toLowerCase() === normalized);
 }
 
+export function dedupePosts(rows: GhostPostRow[]): GhostPostRow[] {
+  const byKey = new Map<string, GhostPostRow>();
+  for (const row of rows) {
+    const key = row.id || row.slug;
+    if (!key) continue;
+    byKey.set(key, row);
+  }
+  return [...byKey.values()];
+}
+
 export function getExcludeReason(post: GhostPostRow, excludeTag?: string): string | null {
   if (post.title === DIGEST_TITLE) return 'digest title';
   if (excludeTag && hasExcludeTag(post, excludeTag)) return `tag ${excludeTag}`;
@@ -77,7 +87,7 @@ async function browsePosts(api: ReturnType<typeof createApi>, filter: string): P
   return (await api.posts.browse({
     filter,
     include: 'tags',
-    fields: 'title,slug,url,excerpt,custom_excerpt,plaintext,status,published_at,updated_at',
+    fields: 'id,title,slug,url,excerpt,custom_excerpt,plaintext,status,published_at,updated_at',
     order: 'published_at asc',
     limit: 'all',
   })) as GhostPostRow[];
@@ -94,13 +104,11 @@ export async function fetchPostsForWindow(from: Date, to: Date): Promise<DigestP
 
   console.log(`API: ${publishedRows.length} published, ${scheduledRows.length} scheduled`);
 
-  const byId = new Map<string, GhostPostRow>();
-  for (const row of [...publishedRows, ...scheduledRows]) {
-    byId.set(row.id, row);
-  }
+  const merged = dedupePosts([...publishedRows, ...scheduledRows]);
+  console.log(`Unique posts: ${merged.length}`);
 
   const posts: DigestPost[] = [];
-  for (const post of byId.values()) {
+  for (const post of merged) {
     if (post.status !== 'published' && post.status !== 'scheduled') continue;
 
     const reason = getExcludeReason(post, excludeTag);
