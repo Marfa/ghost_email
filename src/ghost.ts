@@ -1,5 +1,5 @@
 import GhostAdminAPI from '@tryghost/admin-api';
-import { DIGEST_DRAFT_TAG, DIGEST_TITLE } from './constants.js';
+import { DIGEST_TITLE } from './constants.js';
 import { toGhostFilterDate } from './window.js';
 import { pickExcerpt, type DigestPost } from './build-html.js';
 
@@ -150,14 +150,11 @@ export async function fetchPostsForWindow(from: Date, to: Date): Promise<DigestP
 
 export async function createDraftPost(title: string, html: string): Promise<{ id: string; url: string }> {
   const api = createApi();
-  const tag = (process.env.DIGEST_DRAFT_TAG ?? DIGEST_DRAFT_TAG).replace(/^#/, '');
-
   const created = (await api.posts.add(
     {
       title,
       html,
       status: 'draft',
-      tags: [{ name: `#${tag}` }],
     },
     { source: 'html' },
   )) as { id: string; url: string };
