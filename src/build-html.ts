@@ -43,7 +43,7 @@ export function buildDigestHtml(posts: DigestPost[], intro: string, imageUrl?: s
       `<h3 id="${escapeHtml(post.slug)}">${escapeHtml(post.title)}</h3>`,
       `<p>${escapeHtml(post.excerpt)}</p>`,
       '<!--kg-card-begin: button-->',
-      `<div class="kg-card kg-button-card kg-align-left"><a href="${escapeHtml(post.url)}" class="kg-btn kg-btn-accent">Читать дальше</a></div>`,
+      `<div class="kg-card kg-button-card kg-align-center"><a href="${escapeHtml(post.url)}" class="kg-btn kg-btn-accent">Читать дальше</a></div>`,
       '<!--kg-card-end: button-->',
     );
   }

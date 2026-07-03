@@ -26,6 +26,29 @@ export function normalizeGhostUrl(raw: string): string {
   return raw.replace(/\/+$/, '').replace(/\/ghost\/?$/, '');
 }
 
+/** Scheduled в Admin API отдают preview /p/{id}/ — нужен канонический /{slug}/. */
+export function resolvePostUrl(
+  post: Pick<GhostPostRow, 'slug' | 'url' | 'status'>,
+  fallbackSiteUrl: string,
+): string {
+  let origin = normalizeGhostUrl(fallbackSiteUrl);
+  try {
+    if (post.url?.startsWith('http')) {
+      origin = new URL(post.url).origin;
+    }
+  } catch {
+    // ponytail: keep fallback origin
+  }
+
+  const isPreviewUrl = /\/p\/[a-f0-9-]+\/?$/i.test(post.url);
+  if (post.status === 'scheduled' || isPreviewUrl) {
+    return `${origin}/${post.slug}/`;
+  }
+
+  if (post.url?.startsWith('http')) return post.url;
+  return `${origin}/${post.slug}/`;
+}
+
 export function buildPublishedFilter(from: Date, to: Date): string {
   const fromIso = toGhostFilterDate(from);
   const toIso = toGhostFilterDate(to);
@@ -74,11 +97,11 @@ export function getExcludeReason(post: GhostPostRow, excludeTag?: string): strin
   return null;
 }
 
-function mapPost(post: GhostPostRow): DigestPost {
+function mapPost(post: GhostPostRow, siteUrl: string): DigestPost {
   return {
     title: post.title,
     slug: post.slug,
-    url: post.url,
+    url: resolvePostUrl(post, siteUrl),
     excerpt: pickExcerpt(post.custom_excerpt, post.excerpt, post.plaintext, post.title),
   };
 }
@@ -107,6 +130,7 @@ export async function fetchPostsForWindow(from: Date, to: Date): Promise<DigestP
   const merged = dedupePosts([...publishedRows, ...scheduledRows]);
   console.log(`Unique posts: ${merged.length}`);
 
+  const siteUrl = normalizeGhostUrl(process.env.GHOST_URL!);
   const posts: DigestPost[] = [];
   for (const post of merged) {
     if (post.status !== 'published' && post.status !== 'scheduled') continue;
@@ -117,7 +141,7 @@ export async function fetchPostsForWindow(from: Date, to: Date): Promise<DigestP
       continue;
     }
 
-    posts.push(mapPost(post));
+    posts.push(mapPost(post, siteUrl));
   }
 
   console.log(`After filters: ${posts.length} posts (${posts.map((p) => p.slug).join(', ')})`);

@@ -26,6 +26,7 @@ describe('buildDigestHtml', () => {
     expect(html).toContain('<h3 id="test">Test</h3>');
     expect(html).toContain('<!--kg-card-begin: button-->');
     expect(html).toContain('kg-button-card');
+    expect(html).toContain('kg-align-center');
     expect(html).toContain('class="kg-btn kg-btn-accent"');
     expect(html).toContain('https://example.com/test/');
   });
