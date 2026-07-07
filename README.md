@@ -44,3 +44,9 @@ npm ci && npm test && npm run build && npm run digest
 Код подготовлен с помощью Cursor.
 
 Поддержка: [DonationAlerts](https://www.donationalerts.com/r/themarfa) · [NOWPayments](https://nowpayments.io/donation/themarfa)
+
+## Лицензия
+
+**Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)**
+
+См. [LICENSE](LICENSE) · https://creativecommons.org/licenses/by-nc-sa/4.0/
