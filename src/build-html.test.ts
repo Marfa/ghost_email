@@ -31,12 +31,6 @@ describe('buildDigestHtml', () => {
     expect(html).toContain('https://example.com/test/');
   });
 
-  it('adds image block when imageUrl provided', () => {
-    const html = buildDigestHtml([], 'Intro', 'https://example.com/cover.png');
-    expect(html).toContain('kg-image-card');
-    expect(html).toContain('https://example.com/cover.png');
-  });
-
   it('escapes HTML in titles', () => {
     const html = buildDigestHtml(
       [{ title: 'A & B', slug: 'ab', url: 'https://x/', excerpt: 'ok' }],

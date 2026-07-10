@@ -27,16 +27,8 @@ export function pickExcerpt(
   return stripHtml(raw);
 }
 
-export function buildDigestHtml(posts: DigestPost[], intro: string, imageUrl?: string): string {
-  const parts: string[] = [];
-
-  if (imageUrl) {
-    parts.push(
-      `<figure class="kg-card kg-image-card"><img src="${escapeHtml(imageUrl)}" alt="Обложка дайджеста" /></figure>`,
-    );
-  }
-
-  parts.push(`<p>${escapeHtml(intro)}</p>`);
+export function buildDigestHtml(posts: DigestPost[], intro: string): string {
+  const parts: string[] = [`<p>${escapeHtml(intro)}</p>`];
 
   for (const post of posts) {
     parts.push(

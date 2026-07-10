@@ -148,13 +148,18 @@ export async function fetchPostsForWindow(from: Date, to: Date): Promise<DigestP
   return posts;
 }
 
-export async function createDraftPost(title: string, html: string): Promise<{ id: string; url: string }> {
+export async function createDraftPost(
+  title: string,
+  html: string,
+  featureImage?: string,
+): Promise<{ id: string; url: string }> {
   const api = createApi();
   const created = (await api.posts.add(
     {
       title,
       html,
       status: 'draft',
+      ...(featureImage ? { feature_image: featureImage } : {}),
     },
     { source: 'html' },
   )) as { id: string; url: string };

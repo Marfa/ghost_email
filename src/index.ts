@@ -30,11 +30,11 @@ export async function runDigest(): Promise<void> {
     return;
   }
 
-  const imageUrl = await resolveDigestImageUrl();
-  const html = buildDigestHtml(posts, DIGEST_INTRO, imageUrl ?? undefined);
+  const featureImage = await resolveDigestImageUrl();
+  const html = buildDigestHtml(posts, DIGEST_INTRO);
   const title = DIGEST_TITLE;
 
-  const draft = await createDraftPost(title, html);
+  const draft = await createDraftPost(title, html, featureImage ?? undefined);
   await writeLastRun(runStartedAt);
 
   console.log(`Draft created: ${draft.url} (${posts.length} posts)`);
