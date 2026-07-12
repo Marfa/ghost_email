@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildPublishedFilter, buildScheduledFilter, dedupePosts, getExcludeReason, resolvePostUrl } from './ghost.js';
+import { buildPublishedFilter, buildScheduledFilter, dedupePosts, getExcludeReason, normalizeGhostUrl, resolvePostUrl } from './ghost.js';
 import { DIGEST_TITLE } from './constants.js';
 import type { GhostPostRow } from './ghost.js';
 
@@ -53,31 +53,38 @@ describe('dedupePosts', () => {
   });
 });
 
+describe('normalizeGhostUrl', () => {
+  it('strips trailing slash and /ghost suffix', () => {
+    expect(normalizeGhostUrl('https://your-site.ghost.io/')).toBe('https://your-site.ghost.io');
+    expect(normalizeGhostUrl('https://your-site.ghost.io/ghost/')).toBe('https://your-site.ghost.io');
+  });
+});
+
 describe('resolvePostUrl', () => {
   it('builds slug url for scheduled preview links', () => {
     expect(
       resolvePostUrl(
         {
-          slug: 'kak-upravliat-cursor-cherez-telegram',
-          url: 'https://blog.themarfa.name/p/321b64ae-33ed-425e-8ca1-c7e3b1f81fe5/',
+          slug: 'scheduled-post',
+          url: 'https://preview.example.com/p/321b64ae-33ed-425e-8ca1-c7e3b1f81fe5/',
           status: 'scheduled',
         },
         'https://your-site.ghost.io',
       ),
-    ).toBe('https://blog.themarfa.name/kak-upravliat-cursor-cherez-telegram/');
+    ).toBe('https://preview.example.com/scheduled-post/');
   });
 
   it('keeps published canonical url', () => {
     expect(
       resolvePostUrl(
         {
-          slug: 'webmin',
-          url: 'https://blog.themarfa.name/chto-takoe-webmin-i-kakie-u-nego-funktsii/',
+          slug: 'published-post',
+          url: 'https://www.example.com/published-post/',
           status: 'published',
         },
         'https://your-site.ghost.io',
       ),
-    ).toBe('https://blog.themarfa.name/chto-takoe-webmin-i-kakie-u-nego-funktsii/');
+    ).toBe('https://www.example.com/published-post/');
   });
 });
 
