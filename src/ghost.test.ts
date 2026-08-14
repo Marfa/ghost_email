@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildPublishedFilter, buildScheduledFilter, dedupePosts, getExcludeReason, normalizeGhostUrl, resolvePostUrl } from './ghost.js';
+import { buildPublishedFilter, buildScheduledFilter, dedupePosts, getExcludeReason, normalizeGhostUrl, resolvePostUrl, scrubDraftFields } from './ghost.js';
 import { DIGEST_TITLE } from './constants.js';
 import type { GhostPostRow } from './ghost.js';
 
@@ -85,6 +85,14 @@ describe('resolvePostUrl', () => {
         'https://your-site.ghost.io',
       ),
     ).toBe('https://www.example.com/published-post/');
+  });
+});
+
+describe('scrubDraftFields', () => {
+  it('strips invisible marks from title and html before Ghost', () => {
+    const { title, html } = scrubDraftFields('Hello\u200b', '<p>World\u00ad</p>');
+    expect(title).toBe('Hello');
+    expect(html).toBe('<p>World</p>');
   });
 });
 

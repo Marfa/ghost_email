@@ -2,6 +2,7 @@ import GhostAdminAPI from '@tryghost/admin-api';
 import { DIGEST_TITLE } from './constants.js';
 import { toGhostFilterDate } from './window.js';
 import { pickExcerpt, type DigestPost } from './build-html.js';
+import { cleanAiMarks } from './clean-watermarks.js';
 
 export interface GhostPostRow {
   id: string;
@@ -148,16 +149,37 @@ export async function fetchPostsForWindow(from: Date, to: Date): Promise<DigestP
   return posts;
 }
 
+/** Снимает невидимые Unicode-пометки до отправки черновика в Ghost. */
+export function scrubDraftFields(title: string, html: string): {
+  title: string;
+  html: string;
+  removed: number;
+  replaced: number;
+} {
+  const cleanedTitle = cleanAiMarks(title);
+  const cleanedHtml = cleanAiMarks(html);
+  return {
+    title: cleanedTitle.text,
+    html: cleanedHtml.text,
+    removed: cleanedTitle.removedCount + cleanedHtml.removedCount,
+    replaced: cleanedTitle.replacedCount + cleanedHtml.replacedCount,
+  };
+}
+
 export async function createDraftPost(
   title: string,
   html: string,
   featureImage?: string,
 ): Promise<{ id: string; url: string }> {
   const api = createApi();
+  const scrubbed = scrubDraftFields(title, html);
+  if (scrubbed.removed || scrubbed.replaced) {
+    console.log(`AI marks scrubbed: removed=${scrubbed.removed} replaced=${scrubbed.replaced}`);
+  }
   const created = (await api.posts.add(
     {
-      title,
-      html,
+      title: scrubbed.title,
+      html: scrubbed.html,
       status: 'draft',
       ...(featureImage ? { feature_image: featureImage } : {}),
     },
