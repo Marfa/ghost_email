@@ -1,6 +1,6 @@
 import { buildDigestHtml } from './build-html.js';
 import { DIGEST_INTRO, DIGEST_TITLE } from './constants.js';
-import { fetchPostsForWindow, createDraftPost, resolveDigestImageUrl } from './ghost.js';
+import { fetchPostsForWindow, createDraftPost } from './ghost.js';
 import { readLastRun, writeLastRun } from './state.js';
 import { getCollectionWindow } from './window.js';
 
@@ -30,11 +30,10 @@ export async function runDigest(): Promise<void> {
     return;
   }
 
-  const featureImage = await resolveDigestImageUrl();
   const html = buildDigestHtml(posts, DIGEST_INTRO);
   const title = DIGEST_TITLE;
 
-  const draft = await createDraftPost(title, html, featureImage ?? undefined);
+  const draft = await createDraftPost(title, html);
   await writeLastRun(runStartedAt);
 
   console.log(`Draft created: ${draft.url} (${posts.length} posts)`);

@@ -23,8 +23,5 @@ declare module '@tryghost/admin-api' {
       browse(options?: BrowseOptions): Promise<unknown[]>;
       add(data: Record<string, unknown>, options?: AddOptions): Promise<Record<string, unknown>>;
     };
-    images: {
-      upload(data: { file: string; purpose?: string; ref?: string }): Promise<Record<string, unknown>>;
-    };
   }
 }

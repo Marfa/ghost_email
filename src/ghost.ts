@@ -18,10 +18,6 @@ export interface GhostPostRow {
   tags?: Array<{ name: string }>;
 }
 
-interface GhostImageUploadResult {
-  url: string;
-}
-
 /** Корень сайта без /ghost — админка на {url}/ghost, API на {url}/ghost/api/admin/. */
 export function normalizeGhostUrl(raw: string): string {
   return raw.replace(/\/+$/, '').replace(/\/ghost\/?$/, '');
@@ -169,7 +165,6 @@ export function scrubDraftFields(title: string, html: string): {
 export async function createDraftPost(
   title: string,
   html: string,
-  featureImage?: string,
 ): Promise<{ id: string; url: string }> {
   const api = createApi();
   const scrubbed = scrubDraftFields(title, html);
@@ -181,30 +176,9 @@ export async function createDraftPost(
       title: scrubbed.title,
       html: scrubbed.html,
       status: 'draft',
-      ...(featureImage ? { feature_image: featureImage } : {}),
     },
     { source: 'html' },
   )) as { id: string; url: string };
 
   return { id: created.id, url: created.url };
-}
-
-export async function resolveDigestImageUrl(): Promise<string | null> {
-  const directUrl = process.env.DIGEST_IMAGE_URL?.trim();
-  if (directUrl) return directUrl;
-
-  const imagePath = process.env.DIGEST_IMAGE_PATH?.trim() || 'assets/digest-cover.png';
-  if (!imagePath) return null;
-
-  const api = createApi();
-  const uploaded = (await api.images.upload({
-    file: imagePath,
-    purpose: 'image',
-  })) as unknown as GhostImageUploadResult;
-
-  if (!uploaded.url) {
-    throw new Error('Ghost image upload did not return url');
-  }
-
-  return uploaded.url;
 }
