@@ -11,6 +11,7 @@ npm ci && npm test && npm run build && npm run digest
 |-----|-----|
 | Период сбора | После `state/last-run.json`; первый раз — 7 дней |
 | Статусы постов | Опубликован + Запланирован |
+| Блок приветствия | ИИ: HF → Groq → шаблон «Приветствую. …» |
 | Пометки ИИ | Снимаются перед черновиком (ZWSP, bidi, экзотические пробелы) |
 | Результат | Черновик в Ghost с excerpt и «Читать дальше» |
 | Автозапуск | GitHub Actions → Run workflow (только вручную) |
@@ -32,6 +33,15 @@ npm ci && npm test && npm run build && npm run digest
 |------------|-------------|--------------|
 | `GHOST_URL` | да | `https://your-site.ghost.io` (без `/ghost`) |
 | `GHOST_ADMIN_API_KEY` | да | — |
+| `HF_TOKEN` | нет | Hugging Face (первый провайдер intro) |
+| `HF_TEXT_MODEL` | нет | `Qwen/Qwen3-4B-Instruct-2507` |
+| `HF_BASE_URL` | нет | `https://router.huggingface.co/v1` |
+| `GROQ_API_KEY` | нет | fallback intro, если HF недоступен |
+| `GROQ_MODEL` | нет | `openai/gpt-oss-20b` |
+| `GROQ_BASE_URL` | нет | `https://api.groq.com/openai/v1` |
+| `OPENAI_API_KEY` | нет | третий запасной OpenAI-compatible ключ |
+| `OPENAI_BASE_URL` | нет | `https://api.openai.com/v1` |
+| `OPENAI_MODEL` | нет | `gpt-4o-mini` |
 | `DIGEST_EXCLUDE_TAG` | нет | не задан — теги не исключаются |
 | `FALLBACK_DAYS` | нет | `7` |
 | `STATE_FILE` | нет | `state/last-run.json` |

@@ -1,8 +1,12 @@
 import { buildDigestHtml } from './build-html.js';
-import { DIGEST_INTRO, DIGEST_TITLE } from './constants.js';
+import { DIGEST_TITLE } from './constants.js';
+import { generateDigestIntro } from './generate-intro.js';
 import { fetchPostsForWindow, createDraftPost } from './ghost.js';
+import { loadEnvFile } from './load-env.js';
 import { readLastRun, writeLastRun } from './state.js';
 import { getCollectionWindow } from './window.js';
+
+loadEnvFile();
 
 function parseFallbackDays(): number {
   const raw = process.env.FALLBACK_DAYS ?? '7';
@@ -30,7 +34,8 @@ export async function runDigest(): Promise<void> {
     return;
   }
 
-  const html = buildDigestHtml(posts, DIGEST_INTRO);
+  const intro = await generateDigestIntro(posts);
+  const html = buildDigestHtml(posts, intro);
   const title = DIGEST_TITLE;
 
   const draft = await createDraftPost(title, html);
